@@ -109,3 +109,116 @@
     )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Contibuted by Jonathan Shea
+
+(defun get-neighbors (vertex graph)
+    ;returns the neighbors for a given vertex in a graph
+    (dolist (v graph)
+        (if (equal (car v) vertex)
+            (return (nth 0 (cdr v))))
+        )
+    )
+
+(defun get-cutset-graph (vertices graph)
+    ;given a list of vertices and the original graph, returns the adjacency
+    ;list only with edges connecting the given vertices
+    (let ((cutset-graph ()) (vertex-neighbors ()) (cutset-neighbors ()))
+        (dolist (vertex vertices)
+            (setf vertex-neighbors (get-neighbors vertex graph))
+            (setf cutset-neighbors ())
+            (dolist (edge vertex-neighbors)
+                (if (member edge vertices)
+                    (setf cutset-neighbors (append cutset-neighbors (list edge)))
+                    )
+                )
+            (setf cutset-graph (append cutset-graph (list (cons vertex (list cutset-neighbors)))))
+            )
+        cutset-graph
+        )
+    )
+
+
+(defun update-possible-colors (graph assignment possible-colors)
+    ;graph is the original adjacency list
+    ;assignment is a 2-tuple of (vertex color)
+    ;possible colors is the graph of ((vertex-1 (possible-colors-1)) ... (vertex-n (possible-colors-n)))
+    ;
+    ;Returns a new possible-colors list
+    (let ((new-possible-colors ()) (assigned-vertex (car assignment)) (assigned-color (nth 1 assignment)) (temp-colors ()))
+        (dolist (tuple possible-colors)
+            (if (not (equal (car tuple) assigned-vertex))
+                (if (member assigned-vertex (get-neighbors (car tuple) graph))
+                    (progn
+                        (setf temp-colors (nth 1 tuple))
+                        (setf temp-colors (remove assigned-color temp-colors))
+                        (setf new-possible-colors (append new-possible-colors (list (cons (car tuple) (list temp-colors)))))
+                        )
+                    (setf new-possible-colors (append new-possible-colors (list tuple)))
+                    )
+                )
+            )
+        new-possible-colors
+        )
+
+    )
+
+(defun color-map (graph trees cutset possible-colors assignments free-variables)
+    (let ((vertex ()) (temp-possible-colors ()) (temp-assignments ()) (assignment ()) (temp-free-variables ()) (temp-solution ()))
+        ;for each assignment to the first free variable
+        (setf vertex (car free-variables))
+        (dolist (color (get-neighbors vertex possible-colors))
+            ;update a copy of assignments and a copy of the possible-colors
+            ;remove vertex from free-variables. If the cutset is completely colored,
+            ;check to see if the tree can be colored. If it can be colored, return the
+            ;solution. If it can't keep iterating. 
+            ;If the cutset isn't completely colored, recursively call color-map
+            (format t "assigning ~a to ~a~%" color vertex)
+
+            (setf assignment (cons vertex (list color)))
+            (setf temp-assignments (append assignments (list assignment)))
+            (setf temp-possible-colors (update-possible-colors graph assignment possible-colors))
+            (setf temp-free-variables (cdr free-variables))
+
+            
+            ;If all of the cutset has been colored, check to see if the tree can be colored
+            (if (null temp-free-variables)
+
+                (progn
+                    (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
+                    (if (not (null temp-solution))
+                        (return temp-solution))
+                    )
+                ;If more free variables, recursively call color-map
+                (progn
+                    (setf temp-solution (color-map graph trees cutset temp-possible-colors temp-assignments temp-free-variables))
+                    (if (not (null temp-solution))
+                        (return temp-solution))
+                    )
+                )
+            (format t "unassigning ~a to ~a~%" color vertex)
+            ;If this assignment didn't work for all other possible colorings via the recursive calls, try the next color option
+            )
+        )
+    )
+
+(defun solve-map (graph)
+    (let ((cutset ()) (possible-colors ()) (colors `(R G B Y)) (trees ()) (assignments ()) (cutset-graph ()))
+        (setf cutset (get-cutset graph))
+        (setf trees (get-trees graph cutset))
+        (setf cutset-graph (get-cutset-graph cutset graph))
+        ;Create the initial possible-colorings
+        (dolist (tuple graph)
+            (setf possible-colors (append possible-colors (list (cons (car tuple) (list colors)))))
+            )
+        (setf assignments (color-map graph trees cutset-graph possible-colors () cutset))
+        (print assignments)
+        )
+    ()
+    )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun color-tree (graph trees cutset possible-colors assignments)
+    assignments
+    )
