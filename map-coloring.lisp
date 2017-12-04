@@ -9,6 +9,58 @@
 
 (setf simple-map '((A (B C E)) (B (A E F)) (C (A E F)) (D (F)) (E (A B C F)) (F (B C D E))))
 
+(setf *50-states* '(
+                    (AL (GA FL MS TN))             ; AL = Alabama
+                    (AK ())                        ; AK = Alaska
+                    (AZ (CA NV UT CO NM))          ; AZ = Arizona
+                    (AR (TX OK MO TN MS LA))       ; AR = Arkansas
+                    (CA (OR NV AZ))                ; CA = California
+                    (CO (NM AZ UT WY NE KS OK))    ; CO = Colorado
+                    (CT (RI NY MA))                ; CT = Conneticut
+                    (DE (MD PA NJ))                ; DE = Delaware
+                    (DC (MD VA))                   ; DC = D.C.
+                    (FL (GA AL))                   ; FL = Florida
+                    (GA (SC NC TN AL FL))          ; GA = Georgia
+                    (HI ())                        ; HI = Hawaii
+                    (ID (WA OR NV UT WY MT))       ; ID = Idaho
+                    (IL (WI IA MO KY IN))          ; IL = Illinois
+                    (IN (IL KY OH MI))             ; IN = Indiana
+                    (IA (MN SD NE MO IL WI))       ; IA = Iowa
+                    (KS (CO OK MO NE))             ; KS = Kansas
+                    (KY (MO TN VA WV OH IN IL))    ; KY = Kentucky
+                    (LA (TX AR MS))                ; LA = Lousiana
+                    (ME (NH))                      ; ME = Maine
+                    (MD (DE PA WV DC VA))          ; MD = Maryland
+                    (MA (RI CT NY VT NH))          ; MA = Mass
+                    (MI (OH IN WI))                ; MI = Michigan
+                    (MN (WI IA SD ND))             ; MN = Minnesota
+                    (MS (LA AR TN AL))             ; MS = Mississippi
+                    (MO (KS NE IA IL KY TN AR OK)) ; MO = Missouri
+                    (MT (ID WY SD ND))             ; MT = Montana
+                    (NE (WY SD IA MO KS CO))       ; NE = Nebraska
+                    (NV (CA OR ID UT AZ))          ; NV = Nevada
+                    (NH (ME MA VT))                ; NH = New Hampshire
+                    (NJ (NY PA DE))                ; NJ = New Jersey
+                    (NM (AZ UT CO OK TX))          ; NM = New Mexico
+                    (NY (PA NJ CT MA VT))          ; NY = New York
+                    (NC (VA TN GA SC))             ; NC = North Carolina
+                    (ND (MT SD MN))                ; ND = North Dakota
+                    (OH (PA WV KY IN MI))          ; OH = Ohio
+                    (OK (TX NM CO KS MO AR))       ; OK = Oklahoma
+                    (OR (WA ID NV CA))             ; OR = Oregon
+                    (PA (NY NJ DE MD WV OH))       ; PA = Pennsylvania
+                    (RI (CT MA))                   ; RI = Rhode Island
+                    (SC (GA NC))                   ; SC = South Carolina
+                    (SD (WY MT ND MN IA NE))       ; SD = South Dakota
+                    (TN (AR MO KY VA NC GA AL MS)) ; TN = Tennessee
+                    (TX (NM OK AR LA))             ; TX = Texas
+                    (UT (CO NM AZ NV ID WY))       ; UT = Utah
+                    (VT (NY MA NH))                ; VT = Vermont
+                    (VA (NC TN KY WV MD DC))       ; VA = Virginia
+                    (WA (ID OR))                   ; WA = Washington
+                    (WV (KY OH PA MD VA))          ; WV = West Virginia
+                    (WI (MN IA  IL MI))            ; WI = Wisconsin
+                    (WY (ID MT SD NE CO UT))))     ; WY = Wyoming
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -163,7 +215,14 @@
 
     )
 
-(defun color-map (graph trees cutset possible-colors assignments free-variables)
+(defun check-valid-possibilities (possible-colors)
+    (dolist (tuple possible-colors)
+        (if (null (cdr tuple))
+            (return ()))
+        )
+    )
+
+(defun color-map (graph trees cutset possible-colors assignments free-variables depth)
     (let ((vertex ()) (temp-possible-colors ()) (temp-assignments ()) (assignment ()) (temp-free-variables ()) (temp-solution ()))
         ;for each assignment to the first free variable
         (setf vertex (car free-variables))
@@ -173,11 +232,19 @@
             ;check to see if the tree can be colored. If it can be colored, return the
             ;solution. If it can't keep iterating. 
             ;If the cutset isn't completely colored, recursively call color-map
-            (format t "assigning ~a to ~a~%" color vertex)
+            
+            ; (dotimes (n depth)
+            ;     (format t " "))
+            ; (format t "assigning ~a to ~a~%" color vertex)
 
             (setf assignment (cons vertex (list color)))
             (setf temp-assignments (append assignments (list assignment)))
             (setf temp-possible-colors (update-possible-colors graph assignment possible-colors))
+            
+            ;If this color selection makes other vertices have no options, try other colors
+            (if (null (check-valid-possibilities temp-possible-colors))
+                (continue))
+
             (setf temp-free-variables (cdr free-variables))
 
             
@@ -191,12 +258,16 @@
                     )
                 ;If more free variables, recursively call color-map
                 (progn
-                    (setf temp-solution (color-map graph trees cutset temp-possible-colors temp-assignments temp-free-variables))
+                    (setf temp-solution (color-map graph trees cutset temp-possible-colors temp-assignments temp-free-variables (+ depth 1)))
                     (if (not (null temp-solution))
                         (return temp-solution))
                     )
                 )
-            (format t "unassigning ~a to ~a~%" color vertex)
+            
+            ; (dotimes (n depth)
+            ;     (format t " "))
+            ; (format t "unassigning ~a to ~a~%~%" color vertex)
+
             ;If this assignment didn't work for all other possible colorings via the recursive calls, try the next color option
             )
         )
@@ -211,7 +282,11 @@
         (dolist (tuple graph)
             (setf possible-colors (append possible-colors (list (cons (car tuple) (list colors)))))
             )
-        (setf assignments (color-map graph trees cutset-graph possible-colors () cutset))
+        (setf cutset ())
+        (dolist (tuple graph)
+            (setf cutset (append cutset (list (car tuple))))
+            )
+        (setf assignments (color-map graph trees cutset-graph possible-colors () cutset 0))
         (print assignments)
         )
     ()
@@ -220,5 +295,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun color-tree (graph trees cutset possible-colors assignments)
-    ()
+    assignments
     )
