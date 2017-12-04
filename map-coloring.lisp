@@ -220,5 +220,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun color-tree (graph trees cutset possible-colors assignments)
-    assignments
+    ()
     )
