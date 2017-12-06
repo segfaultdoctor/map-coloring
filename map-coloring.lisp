@@ -252,9 +252,12 @@
             (if (null temp-free-variables)
 
                 (progn
-                    (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
+		  (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
+		  (print "temp-sol")
+		  (print temp-solution)
+		  (print (not (null temp-solution)))
                     (if (not (null temp-solution))
-                        (return temp-solution))
+                        (return-from color-map temp-solution))
                     )
                 ;If more free variables, recursively call color-map
                 (progn
@@ -287,11 +290,12 @@
           ;;  (setf cutset (append cutset (list (car tuple))))
            ;; )
         (setf assignments (color-map graph trees cutset-graph possible-colors () cutset 0))
+	(print "printing assignments")
         (print assignments)
-        )
-    ()
+        
+    assignments
     )
-
+)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun color-tree (graph trees cutset possible-colors assignments)
@@ -303,7 +307,8 @@
   ;;(print possible-colors)
   ;;(print "after possible colors")
   ;;(print assignments)
-  ;;(print trees)
+    ;;(print trees)
+    ;; creates an ordered-tree (i.e ((B F) (C F) (D F) (F B C D)))
   (setf ordered-tree (mapcar #' (lambda (x) (progn
 				     (cond ((not (eql x (nth (- (length trees) 1) trees)))
 					    (print "cdr of x")
@@ -319,13 +324,14 @@
   (print "ordered-tree")
   (print ordered-tree)
 
+  ;; sets an assignment then uddates possible colors
   (loop for i from 0 to (- (length ordered-tree) 1)
      do
        (print "before update")
-       (print (car (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments)))
+       ;;(print (car (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments)))
        (setf possible-colors
 	     (update-possible-colors graph
-				     (car (setf assignments (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments))
+				     (car (setf assignments (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth 0 possible-colors)))))))assignments))
 					   )
  
 					    possible-colors))
@@ -337,13 +343,13 @@
        
   
        )
-  (mapcar #'
-   (lambda (x)
-     (progn
-       (cond ((null (car x))
-	      (return-from color-tree '()))
-	     ((null (cdr x))
-	      (return-from color-tree '()))))) assignments)
+  ;;(mapcar #'
+  ;; (lambda (x)
+    ;; (progn
+      ;; (cond ((null (car x))
+	;;      (return-from color-tree '()))
+	  ;;   ((null (cdr x))
+	    ;;  (return-from color-tree '()))))) assignments)
   (print "possible colors after loop")
   (print possible-colors)
   assignments))
