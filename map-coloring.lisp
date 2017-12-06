@@ -282,10 +282,10 @@
         (dolist (tuple graph)
             (setf possible-colors (append possible-colors (list (cons (car tuple) (list colors)))))
             )
-        (setf cutset ())
-        (dolist (tuple graph)
-            (setf cutset (append cutset (list (car tuple))))
-            )
+        ;;(setf cutset ())
+        ;;(dolist (tuple graph)
+          ;;  (setf cutset (append cutset (list (car tuple))))
+           ;; )
         (setf assignments (color-map graph trees cutset-graph possible-colors () cutset 0))
         (print assignments)
         )
@@ -295,5 +295,55 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun color-tree (graph trees cutset possible-colors assignments)
-    assignments
-    )
+  (let ((lst '()))
+  ;;(print "Possible colors before update")
+  ;;(print possible-colors)
+ ;; (setf possible-colors (update-possible-colors graph '(B y) possible-colors))
+  ;;(print "Possible colors after update")
+  ;;(print possible-colors)
+  ;;(print "after possible colors")
+  ;;(print assignments)
+  ;;(print trees)
+  (setf ordered-tree (mapcar #' (lambda (x) (progn
+				     (cond ((not (eql x (nth (- (length trees) 1) trees)))
+					    (print "cdr of x")
+					     (print (car (cdr x)))
+					     (print (nth 0 x))
+					    (list (nth 0 x) (car (car (cdr x)))))
+					   ((append (list (nth 0 x)) (car (cdr x))))
+					    
+					    )
+				     )
+			       )
+		       trees))
+  (print "ordered-tree")
+  (print ordered-tree)
+
+  (loop for i from 0 to (- (length ordered-tree) 1)
+     do
+       (print "before update")
+       (print (car (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments)))
+       (setf possible-colors
+	     (update-possible-colors graph
+				     (car (setf assignments (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments))
+					   )
+ 
+					    possible-colors))
+	     (print "after update-possible")
+       ;;(print (push  (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))
+     ;;	     assignments))
+       (print assignments)
+       (print possible-colors)
+       
+  
+       )
+  (mapcar #'
+   (lambda (x)
+     (progn
+       (cond ((null (car x))
+	      (return-from color-tree '()))
+	     ((null (cdr x))
+	      (return-from color-tree '()))))) assignments)
+  (print "possible colors after loop")
+  (print possible-colors)
+  assignments))
