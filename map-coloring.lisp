@@ -100,8 +100,7 @@
     )
 
 (defun get-largest-deg-vertex (graph)
-  (let ((largest-vertex ()))
-    (setf largest-vertex '())
+    (let ((largest-vertex ()))
     ; iterate the graph to find the vertex that has the most neighbors
     (dolist (x graph)
         (if (> (length (second x)) (length (second largest-vertex)))
@@ -113,10 +112,7 @@
   )
 
 (defun copy-graph (graph)
-  (let ((copy ()) (vertex ()) (neighbors ()))
-    (setf copy '())
-    (setf vertex '())
-    (setf neighbors '())
+    (let ((copy ()) (vertex ()) (neighbors ()))
     (dolist (x graph)
         ; iterate the graph to get each vertex
         ; and its neighbors
@@ -131,8 +127,7 @@
   )
 
 (defun get-cutset (graph)
-  (let ((cutset ()) (G ()) (v ()))
-    (setf cutset '())
+    (let ((cutset ()) (G ()) (v ()))
     ; Don't want to change graph.
     ; Use a copy of graph to get the cutset
     (setf G (copy-graph graph))
@@ -156,7 +151,7 @@
   )
 
 (defun get-trees (graph cutset)
-  (let ((trees ()))
+    (let ((trees ()))
     ; Don't want to change graph.
     ; Use a copy of graph to get the trees
     (setf trees (copy-graph graph))
@@ -328,54 +323,24 @@
 
 (defun color-tree (graph trees possible-colors assignments)
   (let ((ordered-tree ()))
-  ;;(print "Possible colors before update")
-  ;;(print possible-colors)
- ;; (setf possible-colors (update-possible-colors graph '(B y) possible-colors))
-  ;;(print "Possible colors after update")
-  ;;(print possible-colors)
-  ;;(print "after possible colors")
-  ;;(print assignments)
-    ;;(print trees)
     ;; creates an ordered-tree (i.e ((B F) (C F) (D F) (F B C D)))
   (setf ordered-tree (mapcar #' (lambda (x) (progn
 				     (cond ((not (eql x (nth (- (length trees) 1) trees)))
-					    ; (print "cdr of x")
-					     ; (print (car (cdr x)))
-					     ; (print (nth 0 x))
 					    (list (nth 0 x) (car (car (cdr x)))))
-					   ((append (list (nth 0 x)) (car (cdr x))))
-					    
+					   ((append (list (nth 0 x)) (car (cdr x))))					    
 					    )
 				     )
 			       )
 		       trees))
-  ; (print "ordered-tree")
-  ; (print ordered-tree)
 
   ;; sets an assignment then uddates possible colors
   (loop for i from 0 to (- (length ordered-tree) 1)
      do
-       ; (print "before update")
-       ;;(print (car (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments)))
        (setf possible-colors
 	     (update-possible-colors graph
 				     (car (setf assignments (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth 0 possible-colors)))))))assignments))
 					   )
  
 					    possible-colors))
-	     ; (print "after update-possible")
-       ;;(print (push  (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))
-     ;;	     assignments))
-       ; (print assignments)
-       ; (print possible-colors)
        )
-  ; (mapcar #'
-  ; (lambda (x)
-  ;   (progn
-  ;     (cond ((null (car x))
-	 ;     (return-from color-tree '()))
-	 ;    ((null (cdr x))
-	 ;     (return-from color-tree '()))))) assignments)
-  ; (print "possible colors after loop")
-  ; (print possible-colors)
   assignments))
