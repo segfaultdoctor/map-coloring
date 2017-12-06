@@ -65,6 +65,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Contributed by Hongyuan Liu
+
+(defun rmv-vertex (graph vertex)
+    ; if removing A from simple-map, we get 
+    ; ((B (E F)) (C (E F)) (D (F)) (E (B C F)) (F (B C D E)))
+    ; for x in graph, if (first x) == vertex, remove x
+    ; else (for y in (second x)) if y == vertex, remove y
+    (dolist (x graph)
+        (if (eql (first x) vertex)
+            ; if true
+            (setf graph (remove x graph))             
+            ; else 
+            (dolist (y (second x))
+                (if (eql y vertex)
+                    (setf (second x) (remove y (second x)))                                                
+                    )
+                )
+            )
+        )
+    graph
+    )
+
 (defun rmv-deg-0-1-vertices (graph)
     ; iterate the graph
     (dolist (x graph)
@@ -90,26 +111,6 @@
     (first largest-vertex)
     )
   )
-
-(defun rmv-vertex (graph vertex)
-    ; if removing A from simple-map, we get 
-    ; ((B (E F)) (C (E F)) (D (F)) (E (B C F)) (F (B C D E)))
-    ; for x in graph, if (first x) == vertex, remove x
-    ; else (for y in (second x)) if y == vertex, remove y
-    (dolist (x graph)
-        (if (eql (first x) vertex)
-            ; if true
-            (setf graph (remove x graph))             
-            ; else 
-            (dolist (y (second x))
-                (if (eql y vertex)
-                    (setf (second x) (remove y (second x)))                                                
-                    )
-                )
-            )
-        )
-    graph
-    )
 
 (defun copy-graph (graph)
   (let ((copy ()) (vertex ()) (neighbors ()))

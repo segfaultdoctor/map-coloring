@@ -1,0 +1,39 @@
+Script started on Wed Dec  6 15:55:37 2017
+[?1034hbash-3.2$ sbcl
+This is SBCL 1.3.21, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+* (load "map-coloring")
+
+; file: /Users/jshea/CS480/map-coloring/map-coloring.lisp
+; in: DEFUN COLOR-MAP
+;     (COLOR-TREE GRAPH TREES TEMP-POSSIBLE-COLORS TEMP-ASSIGNMENTS)
+; 
+; caught STYLE-WARNING:
+;   undefined function: COLOR-TREE
+; 
+; compilation unit finished
+;   Undefined function:
+;     COLOR-TREE
+;   caught 1 STYLE-WARNING condition
+
+T
+* (solve-map simple-map)
+
+((F G) (D R) (C B) (B B) (E R) (A G))
+* (solve-map *50-states*)
+
+((WY B) (WI R) (WV G) (WA B) (VA Y) (VT B) (UT Y) (TX Y) (SC G) (RI B) (OR G)
+ (OK G) (OH Y) (ND Y) (NC B) (NY Y) (NJ B) (NH G) (NE Y) (MT G) (MS Y) (MN B)
+ (MI G) (ME R) (LA R) (IL Y) (HI R) (FL G) (DC R) (DE G) (CT G) (CA R) (AK R)
+ (AL B) (MO R) (CO R) (TN G) (ID R) (PA R) (SD R) (KY B) (MA R) (AZ G) (AR B)
+ (GA R) (IA G) (IN R) (MD B) (NV B) (NM B) (KS B))
+* (quit)
+bash-3.2$ exit
+exit
+
+Script done on Wed Dec  6 15:56:06 2017
