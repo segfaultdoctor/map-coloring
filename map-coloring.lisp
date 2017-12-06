@@ -222,6 +222,16 @@
         )
     )
 
+(defun check-map (graph)
+  (let ((answer ()))
+    (dolist (tuple graph)
+      (if (null (nth 1 tuple))
+          (setf answer 0))
+      )
+    answer
+    )
+  )
+
 (defun color-map (graph trees cutset possible-colors assignments free-variables depth)
     (let ((vertex ()) (temp-possible-colors ()) (temp-assignments ()) (assignment ()) (temp-free-variables ()) (temp-solution ()))
         ;for each assignment to the first free variable
@@ -252,12 +262,9 @@
             (if (null temp-free-variables)
 
                 (progn
-		  (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
-		  (print "temp-sol")
-		  (print temp-solution)
-		  (print (not (null temp-solution)))
-                    (if (not (null temp-solution))
-                        (return-from color-map temp-solution))
+                    (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
+                    (if (not (equal 0 (check-map temp-solution)))
+                        (return temp-solution))
                     )
                 ;If more free variables, recursively call color-map
                 (progn
@@ -281,6 +288,8 @@
         (setf cutset (get-cutset graph))
         (setf trees (get-trees graph cutset))
         (setf cutset-graph (get-cutset-graph cutset graph))
+        ; (print cutset)
+        ; (print cutset-graph)
         ;Create the initial possible-colorings
         (dolist (tuple graph)
             (setf possible-colors (append possible-colors (list (cons (car tuple) (list colors)))))
@@ -289,9 +298,10 @@
         ;;(dolist (tuple graph)
           ;;  (setf cutset (append cutset (list (car tuple))))
            ;; )
+        (setf cutset (remove () cutset))
         (setf assignments (color-map graph trees cutset-graph possible-colors () cutset 0))
-	(print "printing assignments")
-        (print assignments)
+	; (print "printing assignments")
+        ; (print assignments)
         
     assignments
     )
@@ -311,9 +321,9 @@
     ;; creates an ordered-tree (i.e ((B F) (C F) (D F) (F B C D)))
   (setf ordered-tree (mapcar #' (lambda (x) (progn
 				     (cond ((not (eql x (nth (- (length trees) 1) trees)))
-					    (print "cdr of x")
-					     (print (car (cdr x)))
-					     (print (nth 0 x))
+					    ; (print "cdr of x")
+					     ; (print (car (cdr x)))
+					     ; (print (nth 0 x))
 					    (list (nth 0 x) (car (car (cdr x)))))
 					   ((append (list (nth 0 x)) (car (cdr x))))
 					    
@@ -321,13 +331,13 @@
 				     )
 			       )
 		       trees))
-  (print "ordered-tree")
-  (print ordered-tree)
+  ; (print "ordered-tree")
+  ; (print ordered-tree)
 
   ;; sets an assignment then uddates possible colors
   (loop for i from 0 to (- (length ordered-tree) 1)
      do
-       (print "before update")
+       ; (print "before update")
        ;;(print (car (append (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))assignments)))
        (setf possible-colors
 	     (update-possible-colors graph
@@ -335,21 +345,19 @@
 					   )
  
 					    possible-colors))
-	     (print "after update-possible")
+	     ; (print "after update-possible")
        ;;(print (push  (list (append (list (car (nth i ordered-tree))) (list (car (car (cdr (nth i possible-colors)))))))
      ;;	     assignments))
-       (print assignments)
-       (print possible-colors)
-       
-  
+       ; (print assignments)
+       ; (print possible-colors)
        )
-  ;;(mapcar #'
-  ;; (lambda (x)
-    ;; (progn
-      ;; (cond ((null (car x))
-	;;      (return-from color-tree '()))
-	  ;;   ((null (cdr x))
-	    ;;  (return-from color-tree '()))))) assignments)
-  (print "possible colors after loop")
-  (print possible-colors)
+  ; (mapcar #'
+  ; (lambda (x)
+  ;   (progn
+  ;     (cond ((null (car x))
+	 ;     (return-from color-tree '()))
+	 ;    ((null (cdr x))
+	 ;     (return-from color-tree '()))))) assignments)
+  ; (print "possible colors after loop")
+  ; (print possible-colors)
   assignments))
