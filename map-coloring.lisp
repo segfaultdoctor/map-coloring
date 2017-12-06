@@ -1,15 +1,15 @@
 ; Group member names
 ; Hongyuan Liu
-; 
-; 
+; Jonathan Shea
+; Zanyar Sherwani
 
 ; CS480 Fall 2017
 ; Dr.Duric
 ; Project
 
-(setf simple-map '((A (B C E)) (B (A E F)) (C (A E F)) (D (F)) (E (A B C F)) (F (B C D E))))
+(defvar simple-map '((A (B C E)) (B (A E F)) (C (A E F)) (D (F)) (E (A B C F)) (F (B C D E))))
 
-(setf *50-states* '(
+(defvar *50-states* '(
                     (AL (GA FL MS TN))             ; AL = Alabama
                     (AK ())                        ; AK = Alaska
                     (AZ (CA NV UT CO NM))          ; AZ = Arizona
@@ -79,6 +79,7 @@
     )
 
 (defun get-largest-deg-vertex (graph)
+  (let ((largest-vertex ()))
     (setf largest-vertex '())
     ; iterate the graph to find the vertex that has the most neighbors
     (dolist (x graph)
@@ -88,6 +89,7 @@
         )
     (first largest-vertex)
     )
+  )
 
 (defun rmv-vertex (graph vertex)
     ; if removing A from simple-map, we get 
@@ -110,6 +112,7 @@
     )
 
 (defun copy-graph (graph)
+  (let ((copy ()) (vertex ()) (neighbors ()))
     (setf copy '())
     (setf vertex '())
     (setf neighbors '())
@@ -123,9 +126,11 @@
         (setf copy (append copy (list (list vertex neighbors))))
         )
     copy
+    )
   )
 
 (defun get-cutset (graph)
+  (let ((cutset ()) (G ()) (v ()))
     (setf cutset '())
     ; Don't want to change graph.
     ; Use a copy of graph to get the cutset
@@ -147,8 +152,10 @@
         )
     cutset
     )
+  )
 
 (defun get-trees (graph cutset)
+  (let ((trees ()))
     ; Don't want to change graph.
     ; Use a copy of graph to get the trees
     (setf trees (copy-graph graph))
@@ -159,6 +166,7 @@
         )
     trees
     )
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -171,25 +179,6 @@
             (return (nth 0 (cdr v))))
         )
     )
-
-(defun get-cutset-graph (vertices graph)
-    ;given a list of vertices and the original graph, returns the adjacency
-    ;list only with edges connecting the given vertices
-    (let ((cutset-graph ()) (vertex-neighbors ()) (cutset-neighbors ()))
-        (dolist (vertex vertices)
-            (setf vertex-neighbors (get-neighbors vertex graph))
-            (setf cutset-neighbors ())
-            (dolist (edge vertex-neighbors)
-                (if (member edge vertices)
-                    (setf cutset-neighbors (append cutset-neighbors (list edge)))
-                    )
-                )
-            (setf cutset-graph (append cutset-graph (list (cons vertex (list cutset-neighbors)))))
-            )
-        cutset-graph
-        )
-    )
-
 
 (defun update-possible-colors (graph assignment possible-colors)
     ;graph is the original adjacency list
@@ -215,6 +204,7 @@
 
     )
 
+;Check whether any of the possible-color entries are null
 (defun check-valid-possibilities (possible-colors)
     (dolist (tuple possible-colors)
         (if (null (cdr tuple))
@@ -222,6 +212,7 @@
         )
     )
 
+;method to check whether the call to color-tree returned a valid answer
 (defun check-map (graph)
   (let ((answer ()))
     (dolist (tuple graph)
@@ -232,7 +223,35 @@
     )
   )
 
-(defun color-map (graph trees cutset possible-colors assignments free-variables depth)
+;helper functio for validate
+(defun get-color (vertex answers)
+  (dolist (tuple answers)
+    (if (equal vertex (car tuple))
+        (return (nth 1 tuple)))
+    )
+  )
+
+;method to check whether a given answer set is actually valid
+(defun validate (graph answer)
+  (let ((result graph) (neighbors ()) (vertex ()) (color ()))
+    (dolist (tuple answer)
+      (setf vertex (car tuple))
+      (setf color (nth 1 tuple))
+      (setf neighbors (get-neighbors vertex graph))
+      (dolist (neighbor neighbors)
+        (if (equal color (get-color neighbor answer))
+            (progn
+              (setf result ())
+              ))
+        )
+      )
+    result
+    )
+  )
+
+
+
+(defun color-map (graph trees possible-colors assignments free-variables depth)
     (let ((vertex ()) (temp-possible-colors ()) (temp-assignments ()) (assignment ()) (temp-free-variables ()) (temp-solution ()))
         ;for each assignment to the first free variable
         (setf vertex (car free-variables))
@@ -243,6 +262,7 @@
             ;solution. If it can't keep iterating. 
             ;If the cutset isn't completely colored, recursively call color-map
             
+            ;debuging printing statements to view recursive depth
             ; (dotimes (n depth)
             ;     (format t " "))
             ; (format t "assigning ~a to ~a~%" color vertex)
@@ -262,18 +282,18 @@
             (if (null temp-free-variables)
 
                 (progn
-                    (setf temp-solution (color-tree graph trees cutset temp-possible-colors temp-assignments))
+                    (setf temp-solution (color-tree graph trees temp-possible-colors temp-assignments))
                     (if (not (equal 0 (check-map temp-solution)))
                         (return temp-solution))
                     )
                 ;If more free variables, recursively call color-map
                 (progn
-                    (setf temp-solution (color-map graph trees cutset temp-possible-colors temp-assignments temp-free-variables (+ depth 1)))
+                    (setf temp-solution (color-map graph trees temp-possible-colors temp-assignments temp-free-variables (+ depth 1)))
                     (if (not (null temp-solution))
                         (return temp-solution))
                     )
                 )
-            
+            ;debug print statements to visualize recursive depth
             ; (dotimes (n depth)
             ;     (format t " "))
             ; (format t "unassigning ~a to ~a~%~%" color vertex)
@@ -284,32 +304,29 @@
     )
 
 (defun solve-map (graph)
-    (let ((cutset ()) (possible-colors ()) (colors `(R G B Y)) (trees ()) (assignments ()) (cutset-graph ()))
+    (let ((cutset ()) (possible-colors ()) (colors `(R G B Y)) (trees ()) (assignments ()))
         (setf cutset (get-cutset graph))
         (setf trees (get-trees graph cutset))
-        (setf cutset-graph (get-cutset-graph cutset graph))
-        ; (print cutset)
-        ; (print cutset-graph)
+        ; (setf cutset-graph (get-cutset-graph cutset graph))
         ;Create the initial possible-colorings
         (dolist (tuple graph)
             (setf possible-colors (append possible-colors (list (cons (car tuple) (list colors)))))
             )
-        ;;(setf cutset ())
-        ;;(dolist (tuple graph)
-          ;;  (setf cutset (append cutset (list (car tuple))))
-           ;; )
+
         (setf cutset (remove () cutset))
-        (setf assignments (color-map graph trees cutset-graph possible-colors () cutset 0))
-	; (print "printing assignments")
-        ; (print assignments)
+        (setf assignments (color-map graph trees possible-colors () cutset 0))
+        (if (null (validate graph assignments))
+            (print "Gave an invalid solution"))
         
     assignments
     )
 )
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun color-tree (graph trees cutset possible-colors assignments)
-  (let ((lst '()))
+;Contributed by Zanyar Sherwani
+
+(defun color-tree (graph trees possible-colors assignments)
+  (let ((ordered-tree ()))
   ;;(print "Possible colors before update")
   ;;(print possible-colors)
  ;; (setf possible-colors (update-possible-colors graph '(B y) possible-colors))
